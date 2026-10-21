@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { TrendingUp, BookOpen, RefreshCw, AlertTriangle, ChevronRight, Info } from 'lucide-react';
+import { TrendingUp, BookOpen, RefreshCw, AlertTriangle, ChevronRight, Info, Target, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { progress as progressApi } from '../lib/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
@@ -13,7 +13,9 @@ const DOMAIN_LABELS: Record<Domain, string> = {
   'management-governance': 'Management & Governance',
 };
 
-function ReadinessGauge({ overall, label }: { overall: number | null; label: ReadinessLabel }) {
+const MIN_RESPONSES_PER_DOMAIN = 8;
+
+function ReadinessGauge({ overall, label, totalAnswered }: { overall: number | null; label: ReadinessLabel; totalAnswered: number }) {
   const pct = overall ?? 0;
   const colour =
     label === 'Looking strong' ? 'text-brand-400' :
@@ -43,10 +45,25 @@ function ReadinessGauge({ overall, label }: { overall: number | null; label: Rea
           </span>
         </div>
       </div>
-      <p className={`font-semibold ${colour}`}>{label}</p>
-      <p className="text-xs text-gray-500 text-center max-w-xs">
-        This is a practice-based estimate, not a prediction of your official exam result.
-      </p>
+      {overall === null ? (
+        <>
+          <p className="font-semibold text-gray-200">Build your baseline</p>
+          <p className="max-w-xs text-center text-xs leading-relaxed text-gray-500">
+            Answer {MIN_RESPONSES_PER_DOMAIN} questions in each domain to unlock your readiness estimate.
+          </p>
+          <div className="mt-1 flex items-center gap-2 text-xs text-brand-400">
+            <Target className="h-3.5 w-3.5" aria-hidden="true" />
+            {totalAnswered} answers recorded so far
+          </div>
+        </>
+      ) : (
+        <>
+          <p className={`font-semibold ${colour}`}>{label}</p>
+          <p className="max-w-xs text-center text-xs leading-relaxed text-gray-500">
+            This is a practice-based estimate, not a prediction of your official exam result.
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -58,6 +75,7 @@ function DomainBar({ domain, score, answeredCount, weight }: {
   weight: { min: number; max: number };
 }) {
   const pct = score !== null ? Math.round(score * 100) : null;
+  const baselinePct = Math.min(100, Math.round((answeredCount / MIN_RESPONSES_PER_DOMAIN) * 100));
   const colour = pct === null ? 'bg-gray-700' : pct >= 75 ? 'bg-brand-500' : pct >= 60 ? 'bg-yellow-500' : 'bg-red-500';
 
   return (
@@ -66,12 +84,12 @@ function DomainBar({ domain, score, answeredCount, weight }: {
         <span className="text-sm text-gray-300">{DOMAIN_LABELS[domain]}</span>
         <span className="text-xs text-gray-500">{weight.min}–{weight.max}% of exam</span>
       </div>
-      <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={pct ?? 0} aria-valuemin={0} aria-valuemax={100} aria-label={DOMAIN_LABELS[domain]}>
-        <div className={`h-full rounded-full transition-all duration-700 ${colour}`} style={{ width: pct !== null ? `${pct}%` : '0%' }} />
+      <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={pct ?? baselinePct} aria-valuemin={0} aria-valuemax={100} aria-label={DOMAIN_LABELS[domain]}>
+        <div className={`h-full rounded-full transition-all duration-700 ${pct === null ? 'bg-brand-700/70' : colour}`} style={{ width: `${pct ?? baselinePct}%` }} />
       </div>
       <div className="flex justify-between mt-1">
-        <span className="text-xs text-gray-500">{answeredCount} answered</span>
-        <span className="text-xs text-gray-400 font-medium">{pct !== null ? `${pct}%` : 'Not enough data'}</span>
+        <span className="text-xs text-gray-500">{answeredCount}/{MIN_RESPONSES_PER_DOMAIN} baseline answers</span>
+        <span className="text-xs text-gray-400 font-medium">{pct !== null ? `${pct}% score` : `${Math.max(0, MIN_RESPONSES_PER_DOMAIN - answeredCount)} more needed`}</span>
       </div>
     </div>
   );
@@ -99,6 +117,11 @@ export default function DashboardPage() {
   const misconceptions = misconceptionsData?.misconceptions ?? [];
   const topMisconception = misconceptions.find(m => m.count >= 2);
   const next = nextData?.next;
+  const totalAnswered = readiness?.domains.reduce((sum, domain) => sum + domain.answeredCount, 0) ?? 0;
+  const baselineProgress = readiness
+    ? Math.min(100, Math.round((readiness.domains.reduce((sum, domain) => sum + Math.min(domain.answeredCount, MIN_RESPONSES_PER_DOMAIN), 0) / (MIN_RESPONSES_PER_DOMAIN * 3)) * 100))
+    : 0;
+  const hasIncompleteReadiness = readiness?.overall === null;
 
   const greeting = `Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}!`;
 
@@ -108,6 +131,37 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-100">{greeting}</h1>
         <p className="text-gray-400 text-sm mt-1">Your AZ-900 learning progress</p>
       </div>
+
+      {readiness && hasIncompleteReadiness && (
+        <section className="rounded-2xl border border-brand-800/50 bg-gradient-to-r from-brand-950/70 to-gray-900 p-5 sm:p-6" aria-labelledby="progress-start-heading">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 rounded-xl bg-brand-500/15 p-2.5 text-brand-300">
+                <Sparkles className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 id="progress-start-heading" className="font-semibold text-gray-100">Your learning profile is getting started</h2>
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gray-400">
+                  Complete a few scenarios across all three domains to unlock a meaningful readiness estimate. Your answers are already being saved.
+                </p>
+              </div>
+            </div>
+            <Link to={next?.scenarioId ? `/scenarios/${next.scenarioId}` : '/scenarios'} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-500">
+              {totalAnswered === 0 ? 'Start first scenario' : 'Continue practising'}
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="text-gray-500">Baseline progress</span>
+              <span className="font-medium text-brand-300">{baselineProgress}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-gray-800">
+              <div className="h-full rounded-full bg-brand-500 transition-all duration-700" style={{ width: `${baselineProgress}%` }} />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Misconception alert */}
       {topMisconception && (
@@ -129,7 +183,7 @@ export default function DashboardPage() {
         ) : readinessError ? (
           <ErrorMessage message="Could not load readiness data" retry={refetchReadiness} />
         ) : readiness ? (
-          <ReadinessGauge overall={readiness.overall} label={readiness.label} />
+          <ReadinessGauge overall={readiness.overall} label={readiness.label} totalAnswered={totalAnswered} />
         ) : null}
 
         {/* Domain bars + Next activity */}
