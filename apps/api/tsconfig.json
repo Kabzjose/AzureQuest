@@ -8,8 +8,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "rootDir": "../../",
     "outDir": "./dist",
-    "composite": true,
     "resolveJsonModule": true,
     "declaration": true,
     "paths": {
