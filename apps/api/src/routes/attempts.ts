@@ -46,6 +46,8 @@ attemptsRouter.post('/:id/decisions', async (req, res, next) => {
     const body = SubmitDecisionBodySchema.parse(req.body);
     const decision = await findDecisionById(body.decisionId);
     if (!decision) throw new AppError(404, 'NOT_FOUND', 'Decision not found');
+    const scenario = await findScenarioById(attempt.scenarioId);
+    if (!scenario) throw new AppError(404, 'NOT_FOUND', 'Scenario not found');
 
     // Grade server-side — never trust client correctness
     const gradeResult = gradeDecision({
@@ -54,15 +56,19 @@ attemptsRouter.post('/:id/decisions', async (req, res, next) => {
       type: decision.type,
     });
 
-    // Collect concept IDs from wrong-selected options
+    // Prefer explicit misconception mappings, but always give a failed answer
+    // a useful revision card for the scenario's linked concepts.
     const confusedConceptIds = decision.options
       .filter((o) => body.selectedOptionIds.includes(o.id) && !o.isCorrect && o.confusedWithConceptId)
       .map((o) => o.confusedWithConceptId!);
+    const conceptIdsToRevise = confusedConceptIds.length > 0
+      ? [...new Set(confusedConceptIds)]
+      : [...new Set(scenario.conceptIds)];
 
     // Fetch concepts to build conceptsToRevise
     const conceptsToRevise: Array<{ id: string; name: string; learnUrl: string }> = [];
-    if (confusedConceptIds.length > 0) {
-      const foundConcepts = await findConceptsByIds(confusedConceptIds);
+    if (conceptIdsToRevise.length > 0) {
+      const foundConcepts = await findConceptsByIds(conceptIdsToRevise);
       for (const c of foundConcepts) {
         conceptsToRevise.push({ id: c.id, name: c.name, learnUrl: c.learnUrl });
       }
@@ -85,8 +91,8 @@ attemptsRouter.post('/:id/decisions', async (req, res, next) => {
 
     // Side effects on wrong answers
     if (!gradeResult.isCorrect) {
-      // Create/reset flashcards for confused concepts
-      for (const conceptId of confusedConceptIds) {
+      // Create/reset flashcards for every concept relevant to the failed answer.
+      for (const conceptId of conceptIdsToRevise) {
         await upsertFlashcardDue(userId, conceptId);
       }
       // Update misconception stats
@@ -98,8 +104,7 @@ attemptsRouter.post('/:id/decisions', async (req, res, next) => {
         // We record confusion between the scenario's concept and the confused concept
         if (opt.confusedWithConceptId) {
           // Use the scenario's primary concept as the "correct" side of the pair
-          const scenario = await findScenarioById(attempt.scenarioId);
-          const primaryConceptId = scenario?.conceptIds[0];
+          const primaryConceptId = scenario.conceptIds[0];
           if (primaryConceptId) {
             await upsertMisconception(userId, primaryConceptId, opt.confusedWithConceptId);
           }

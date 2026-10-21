@@ -148,7 +148,7 @@ export default function RevisePage() {
               <p className="text-gray-400">Missed</p>
             </div>
           </div>
-          <p className="text-xs text-gray-500">Cards you missed have been moved back to Box 1 and will appear tomorrow.</p>
+          <p className="text-xs text-gray-500">Cards you missed have been moved back to Box 1 and are ready to review again.</p>
           <button
             onClick={handleRestart}
             className="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl transition-colors"

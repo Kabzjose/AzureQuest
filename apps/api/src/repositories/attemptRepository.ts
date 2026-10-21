@@ -62,14 +62,14 @@ export async function findResponsesForAttempt(attemptId: string, userId: string)
 const LEITNER_DAYS = [0, 1, 3, 7]; // index = box number (box 1→1 day, box 2→3 days, box 3→7 days)
 
 export async function upsertFlashcardDue(userId: string, conceptId: string) {
-  // Box 1, due tomorrow
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  // New cards should be available immediately after a missed answer.
+  const now = new Date();
   await db
     .insert(flashcardStates)
-    .values({ userId, conceptId, box: 1, nextReviewAt: tomorrow })
+    .values({ userId, conceptId, box: 1, nextReviewAt: now })
     .onConflictDoUpdate({
       target: [flashcardStates.userId, flashcardStates.conceptId],
-      set: { box: 1, nextReviewAt: tomorrow, updatedAt: new Date() },
+      set: { box: 1, nextReviewAt: now, updatedAt: now },
     });
 }
 
