@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
@@ -6,7 +6,7 @@ import {
   CheckCircle, XCircle, ChevronRight, MessageCircle, BookMarked,
   AlertCircle, CheckSquare, Square, Info
 } from 'lucide-react';
-import { scenarios as scenariosApi, attempts as attemptsApi, tutor as tutorApi } from '../lib/api';
+import { scenarios as scenariosApi, attempts as attemptsApi } from '../lib/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { TutorDrawer } from '../components/ui/TutorDrawer';
@@ -99,7 +99,6 @@ export default function ChallengePage() {
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
   const [tutorOpen, setTutorOpen] = useState(false);
   const [tutorLanguage, setTutorLanguage] = useState<Language>('en');
-  const [allDone, setAllDone] = useState(false);
 
   // Load scenario
   const { data: scenarioData, isLoading: scenarioLoading, error: scenarioError } = useQuery({
@@ -117,9 +116,11 @@ export default function ChallengePage() {
     onSuccess: (data) => setAttemptId(data.attempt.id),
   });
 
-  if (!attemptId && scenario && !allDone) {
-    createAttempt();
-  }
+  useEffect(() => {
+    if (!attemptId && scenario && scenarioId) {
+      createAttempt();
+    }
+  }, [attemptId, scenario, scenarioId, createAttempt]);
 
   // Submit decision
   const { mutate: submitDecision, isPending: submitting } = useMutation({

@@ -6,6 +6,8 @@ import {
   BrainCircuit,
   Check,
   ChevronRight,
+  Eye,
+  EyeOff,
   Globe2,
   MessageCircle,
   ShieldCheck,
@@ -62,6 +64,9 @@ export default function LandingPage() {
   const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -69,6 +74,11 @@ export default function LandingPage() {
     event.preventDefault();
     setAuthLoading(true);
     setAuthError(null);
+    if (authMode === 'register' && password !== confirmPassword) {
+      setAuthError('Passwords do not match.');
+      setAuthLoading(false);
+      return;
+    }
     try {
       const fn = authMode === 'login' ? authApi.login : authApi.register;
       const { accessToken, user } = await fn({ email, password });
@@ -84,6 +94,8 @@ export default function LandingPage() {
   function openAuth(mode: 'login' | 'register') {
     setAuthMode(mode);
     setAuthError(null);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   }
 
   return (
@@ -185,6 +197,9 @@ export default function LandingPage() {
               <div className="mb-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">Welcome back</p>
                 <h2 className="mt-2 text-2xl font-bold text-white">{authMode === 'login' ? 'Sign in to continue' : 'Create your learner profile'}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  {authMode === 'login' ? 'Pick up your learning journey where you left off.' : 'Save every challenge, score, and revision session in one place.'}
+                </p>
               </div>
               <div className="mb-5 flex rounded-xl bg-white/[0.05] p-1">
                 {(['login', 'register'] as const).map(mode => (
@@ -200,8 +215,25 @@ export default function LandingPage() {
                 </label>
                 <label className="block text-sm font-medium text-slate-300">
                   Password
-                  <input id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={8} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} placeholder="At least 8 characters" className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+                  <span className="relative mt-2 block">
+                    <input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} required minLength={8} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} placeholder="At least 8 characters" className="w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+                    <button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 transition hover:text-brand-300">
+                      {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                    </button>
+                  </span>
                 </label>
+                {authMode === 'register' && (
+                  <label className="block text-sm font-medium text-slate-300">
+                    Confirm password
+                    <span className="relative mt-2 block">
+                      <input id="confirm-password" type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} required minLength={8} autoComplete="new-password" placeholder="Repeat your password" className={`w-full rounded-xl border bg-slate-950 px-3.5 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-600 focus:ring-2 ${confirmPassword && confirmPassword !== password ? 'border-red-400/60 focus:border-red-400 focus:ring-red-400/20' : 'border-white/10 focus:border-brand-400 focus:ring-brand-400/20'}`} />
+                      <button type="button" onClick={() => setShowConfirmPassword(value => !value)} aria-label={showConfirmPassword ? 'Hide confirmed password' : 'Show confirmed password'} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 transition hover:text-brand-300">
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                      </button>
+                    </span>
+                    {confirmPassword && confirmPassword !== password && <span className="mt-1.5 block text-xs font-normal text-red-300">Passwords do not match.</span>}
+                  </label>
+                )}
                 {authError && <p role="alert" className="text-sm text-red-300">{authError}</p>}
                 <button type="submit" disabled={authLoading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 py-3.5 font-semibold text-slate-950 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60">
                   {authLoading ? <LoadingSpinner size="sm" /> : authMode === 'login' ? 'Sign in' : 'Create account'}
