@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1792613458429,
+      "tag": "0000_dazzling_rhino",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1792616000000,
+      "tag": "0001_complete_auth_columns",
+      "breakpoints": true
+    }
+  ]
+}

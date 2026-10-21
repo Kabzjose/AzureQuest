@@ -1,19 +1,56 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Zap, BookOpen, BarChart2, MessageCircle, Shield, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ArrowRight,
+  BarChart2,
+  BrainCircuit,
+  Check,
+  ChevronRight,
+  Globe2,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { auth as authApi } from '../lib/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
-function FeatureCard({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
+const features = [
+  {
+    icon: BrainCircuit,
+    title: 'Practice with context',
+    description: 'Work through realistic decisions instead of memorising disconnected definitions.',
+  },
+  {
+    icon: BarChart2,
+    title: 'Know where you stand',
+    description: 'Track readiness by AZ-900 domain and focus your next study session.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Learn from every answer',
+    description: 'Get clear explanations and practical analogies when a concept feels unclear.',
+  },
+];
+
+function FeatureRow({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex gap-4">
-      <div className="shrink-0 p-2 bg-brand-900/50 rounded-lg h-fit">
-        <Icon className="h-5 w-5 text-brand-400" aria-hidden="true" />
+    <div className="flex gap-3">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-300 ring-1 ring-white/10">
+        <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
       <div>
-        <h3 className="font-semibold text-gray-100 mb-1">{title}</h3>
-        <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-slate-400">{description}</p>
       </div>
     </div>
   );
@@ -22,195 +59,197 @@ function FeatureCard({ icon: Icon, title, description }: { icon: React.ElementTy
 export default function LandingPage() {
   const { setAuth, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showAuth, setShowAuth] = useState<'login' | 'register' | null>(null);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
+  const [guestError, setGuestError] = useState<string | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
 
-  if (isAuthenticated) {
-    navigate('/dashboard', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) navigate('/dashboard', { replace: true });
+  }, [isAuthenticated, navigate]);
 
   async function handleGuest() {
-    setIsLoading(true);
-    setError(null);
+    setIsGuestLoading(true);
+    setGuestError(null);
     try {
       const { accessToken, user } = await authApi.guest();
       setAuth(user, accessToken);
       navigate('/dashboard');
-    } catch {
-      setError('Could not start guest session. Please try again.');
+    } catch (error) {
+      setGuestError(error instanceof Error ? error.message : 'Could not start your guest session.');
     } finally {
-      setIsLoading(false);
+      setIsGuestLoading(false);
     }
   }
 
-  async function handleAuthSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleAuthSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const fn = showAuth === 'login' ? authApi.login : authApi.register;
+      const fn = authMode === 'login' ? authApi.login : authApi.register;
       const { accessToken, user } = await fn({ email, password });
       setAuth(user, accessToken);
       navigate('/dashboard');
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : 'Authentication failed');
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : 'Authentication failed. Please try again.');
     } finally {
       setAuthLoading(false);
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
-      {/* Hero */}
-      <div className="max-w-5xl mx-auto px-4 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 bg-brand-900/40 text-brand-400 text-sm px-3 py-1 rounded-full mb-6">
-          <Zap className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Unofficial AZ-900 Study Tool</span>
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-balance leading-tight">
-          Learn Azure by{' '}
-          <span className="text-brand-400">making decisions</span>,<br />
-          not memorising definitions
-        </h1>
-        <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-3 text-balance">
-          AzureQuest gives you realistic East African business scenarios — a Kenyan university
-          under registration-week load, a SACCO securing member data — and asks: what would
-          <em> you</em> decide?
-        </p>
-        <p className="text-sm text-gray-500 mb-10 italic">
-          "Most AZ-900 tools test what you remember. AzureQuest tests whether you can decide,
-          then explains in terms a Kenyan learner already knows."
-        </p>
+  function openAuth(mode: 'login' | 'register') {
+    setAuthMode(mode);
+    setGuestError(null);
+    setAuthError(null);
+  }
 
-        {/* CTA buttons */}
-        {!showAuth ? (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+  if (isAuthenticated) return null;
+
+  return (
+    <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute left-1/2 top-[-18rem] h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-brand-500/10 blur-3xl" />
+        <div className="absolute bottom-[-14rem] right-[-8rem] h-[30rem] w-[30rem] rounded-full bg-orange-500/10 blur-3xl" />
+      </div>
+
+      <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8">
+        <Link to="/" className="flex items-center gap-2.5 text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-slate-950 shadow-lg shadow-brand-500/20">
+            <Zap className="h-5 w-5 fill-current" aria-hidden="true" />
+          </span>
+          <span className="text-lg font-bold tracking-tight">Azure<span className="text-brand-400">Quest</span></span>
+        </Link>
+        <Link to="/about" className="text-sm font-medium text-slate-400 transition hover:text-white">
+          About the method
+        </Link>
+      </nav>
+
+      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:pt-20">
+        <div>
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-400/20 bg-brand-400/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-brand-300">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            AZ-900 practice, made practical
+          </div>
+          <h1 className="max-w-3xl text-5xl font-bold leading-[1.02] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
+            Build the instinct to make the
+            <span className="bg-gradient-to-r from-brand-300 via-brand-400 to-orange-300 bg-clip-text text-transparent"> right cloud decision.</span>
+          </h1>
+          <p className="mt-7 max-w-xl text-lg leading-8 text-slate-400">
+            AzureQuest turns AZ-900 preparation into short, realistic scenarios. Choose an approach, see the trade-offs, and understand the Azure concept behind it.
+          </p>
+
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
+              type="button"
               onClick={handleGuest}
-              disabled={isLoading}
-              className="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+              disabled={isGuestLoading}
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-3.5 font-semibold text-slate-950 shadow-xl shadow-brand-500/20 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoading ? <LoadingSpinner size="sm" /> : <Zap className="h-4 w-4" aria-hidden="true" />}
-              Start as guest — instant access
+              {isGuestLoading ? <LoadingSpinner size="sm" /> : <Zap className="h-4 w-4 fill-current" aria-hidden="true" />}
+              Start free as a guest
+              {!isGuestLoading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
             </button>
             <button
-              onClick={() => setShowAuth('login')}
-              className="w-full sm:w-auto px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold rounded-xl transition-colors flex items-center gap-2"
+              type="button"
+              onClick={() => openAuth('register')}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3.5 font-semibold text-white transition hover:border-white/30 hover:bg-white/[0.08]"
             >
-              Sign in <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </button>
-            <button
-              onClick={() => setShowAuth('register')}
-              className="w-full sm:w-auto px-6 py-3 border border-gray-700 hover:border-gray-600 text-gray-300 font-semibold rounded-xl transition-colors"
-            >
-              Create account
+              Create an account
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
-        ) : (
-          <div className="max-w-sm mx-auto bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setShowAuth('login')}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showAuth === 'login' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
-              >
-                Sign in
-              </button>
-              <button
-                onClick={() => setShowAuth('register')}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showAuth === 'register' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
-              >
-                Register
+          {guestError && <p role="alert" className="mt-3 text-sm text-red-300">{guestError}</p>}
+          <p className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+            <Check className="h-3.5 w-3.5 text-brand-400" aria-hidden="true" />
+            No credit card · Start in seconds · Upgrade later to keep your progress
+          </p>
+
+          <div className="mt-14 grid max-w-xl grid-cols-3 gap-5 border-t border-white/10 pt-6">
+            <div><p className="text-2xl font-bold text-white">7+</p><p className="mt-1 text-xs text-slate-500">decision scenarios</p></div>
+            <div><p className="text-2xl font-bold text-white">3</p><p className="mt-1 text-xs text-slate-500">AZ-900 domains</p></div>
+            <div><p className="text-2xl font-bold text-white">100%</p><p className="mt-1 text-xs text-slate-500">human-verified grading</p></div>
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-brand-500/20 to-orange-500/10 blur-2xl" />
+          {!authMode ? (
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/90 p-7 shadow-2xl shadow-black/30">
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">Your study loop</p>
+                  <h2 className="mt-2 text-2xl font-bold text-white">Learn by doing.</h2>
+                </div>
+                <div className="rounded-2xl bg-orange-400/10 p-3 text-orange-300"><Globe2 className="h-6 w-6" aria-hidden="true" /></div>
+              </div>
+              <div className="space-y-5">
+                {features.map(feature => <FeatureRow key={feature.title} {...feature} />)}
+              </div>
+              <div className="mt-8 rounded-2xl border border-brand-400/15 bg-brand-400/[0.06] p-4">
+                <p className="text-sm leading-6 text-slate-300">
+                  “The best answer is not always the most powerful one. It is the one that fits the business.”
+                </p>
+                <p className="mt-2 text-xs font-medium text-brand-300">— AzureQuest principle</p>
+              </div>
+              <button type="button" onClick={() => openAuth('login')} className="mt-6 text-sm font-medium text-slate-400 transition hover:text-white">
+                Already have an account? <span className="text-brand-300">Sign in</span>
               </button>
             </div>
-            <form onSubmit={handleAuthSubmit} className="flex flex-col gap-3">
-              <div>
-                <label htmlFor="email" className="block text-sm text-gray-400 mb-1">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="you@example.com"
-                />
+          ) : (
+            <div className="relative rounded-[1.75rem] border border-white/10 bg-slate-900/95 p-7 shadow-2xl shadow-black/30">
+              <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">Welcome back</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">{authMode === 'login' ? 'Sign in to continue' : 'Create your learner profile'}</h2>
               </div>
-              <div>
-                <label htmlFor="password" className="block text-sm text-gray-400 mb-1">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  autoComplete={showAuth === 'login' ? 'current-password' : 'new-password'}
-                  minLength={8}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="••••••••"
-                />
+              <div className="mb-5 flex rounded-xl bg-white/[0.05] p-1">
+                {(['login', 'register'] as const).map(mode => (
+                  <button key={mode} type="button" onClick={() => openAuth(mode)} className={`flex-1 rounded-lg py-2 text-sm font-semibold transition ${authMode === mode ? 'bg-brand-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>
+                    {mode === 'login' ? 'Sign in' : 'Register'}
+                  </button>
+                ))}
               </div>
-              {authError && <p role="alert" className="text-red-400 text-sm">{authError}</p>}
-              <button
-                type="submit"
-                disabled={authLoading}
-                className="w-full py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-60 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                {authLoading ? <LoadingSpinner size="sm" /> : (showAuth === 'login' ? 'Sign in' : 'Create account')}
+              <form onSubmit={handleAuthSubmit} className="space-y-4">
+                <label className="block text-sm font-medium text-slate-300">
+                  Email
+                  <input id="email" type="email" value={email} onChange={event => setEmail(event.target.value)} required autoComplete="email" placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+                </label>
+                <label className="block text-sm font-medium text-slate-300">
+                  Password
+                  <input id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={8} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} placeholder="At least 8 characters" className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+                </label>
+                {authError && <p role="alert" className="text-sm text-red-300">{authError}</p>}
+                <button type="submit" disabled={authLoading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 py-3.5 font-semibold text-slate-950 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60">
+                  {authLoading ? <LoadingSpinner size="sm" /> : authMode === 'login' ? 'Sign in' : 'Create account'}
+                </button>
+              </form>
+              <button type="button" onClick={() => { setAuthMode(null); setAuthError(null); }} className="mt-5 w-full text-center text-sm text-slate-500 transition hover:text-white">
+                Continue without an account
               </button>
-            </form>
-            <button
-              onClick={() => { setShowAuth(null); setAuthError(null); }}
-              className="mt-3 w-full text-xs text-gray-500 hover:text-gray-400"
-            >
-              ← Back
-            </button>
-          </div>
-        )}
-
-        {error && <p role="alert" className="mt-4 text-red-400 text-sm">{error}</p>}
-      </div>
-
-      {/* Features */}
-      <div className="max-w-5xl mx-auto px-4 pb-16">
-        <h2 className="text-center text-xl font-semibold text-gray-300 mb-6">How it works</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <FeatureCard
-            icon={BookOpen}
-            title="Real scenarios, not flashcard trivia"
-            description="7 original East African business scenarios covering all 3 AZ-900 domains. You make architecture decisions, see the consequences, and understand why."
-          />
-          <FeatureCard
-            icon={BarChart2}
-            title="Readiness estimate by domain"
-            description="Recency-weighted accuracy scores per domain with AZ-900 exam weights shown. Clear disclaimer: this is a practice estimate, not a pass prediction."
-          />
-          <FeatureCard
-            icon={MessageCircle}
-            title="AI tutor explains in analogies"
-            description="Confused? Ask 'Why did I get this wrong?' and get a technical reason + an East African analogy (matatus, M-Pesa, SACCOs). Available in English and Kiswahili."
-          />
-          <FeatureCard
-            icon={Shield}
-            title="Grading you can trust"
-            description="Every answer key is human-verified and stored in the database. AI never decides correctness — it only explains. Grading is deterministic and transparent."
-          />
+            </div>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Disclaimer footer */}
-      <div className="border-t border-gray-800 py-6 text-center">
-        <p className="text-xs text-gray-600 px-4">
-          Unofficial study tool. Not affiliated with or endorsed by Microsoft. ·{' '}
-          <Link to="/about" className="hover:text-gray-400 underline">Learn more</Link>
-        </p>
-      </div>
-    </div>
+      <section className="relative z-10 border-t border-white/10 bg-slate-900/40">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-8 md:grid-cols-3">
+          {features.map(feature => (
+            <div key={feature.title} className="flex gap-4">
+              <feature.icon className="mt-1 h-5 w-5 shrink-0 text-brand-400" aria-hidden="true" />
+              <div><h3 className="font-semibold text-white">{feature.title}</h3><p className="mt-1 text-sm leading-6 text-slate-400">{feature.description}</p></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer className="relative z-10 border-t border-white/10 px-5 py-6 text-center text-xs text-slate-600">
+        <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Unofficial study tool. Not affiliated with Microsoft.</span>
+        <span className="mx-2">·</span>
+        <Link to="/about" className="transition hover:text-slate-300">Learn more</Link>
+      </footer>
+    </main>
   );
 }

@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "vitest run",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed/index.ts",
     "db:cleanup-guests": "tsx src/utils/cleanupGuests.ts"
