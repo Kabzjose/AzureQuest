@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (shared)
+        run: npm run typecheck --workspace=packages/shared
+
+      - name: Typecheck (api)
+        run: npm run typecheck --workspace=apps/api
+
+      - name: Typecheck (web)
+        run: npm run typecheck --workspace=apps/web
+
+      - name: Lint (api)
+        run: npm run lint --workspace=apps/api
+
+      - name: Lint (web)
+        run: npm run lint --workspace=apps/web
+
+      - name: Test (api)
+        run: npm run test --workspace=apps/api
+        env:
+          # Tests use mock LLM and in-memory stubs — no real DB needed for unit tests
+          LLM_PROVIDER: mock
+          NODE_ENV: test
+
+      - name: Test (web)
+        run: npm run test --workspace=apps/web
