@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { RefreshCw, CheckCircle, XCircle, BookOpen, ExternalLink } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { flashcards as flashcardsApi } from '../lib/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../components/ui/ErrorMessage';

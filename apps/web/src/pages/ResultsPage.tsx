@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CheckCircle, XCircle, BookMarked, ArrowRight, Tag, Trophy } from 'lucide-react';
+import {  BookMarked, ArrowRight, Trophy } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 // NOTE: In a full implementation this would load attempt results from the API.

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { X, Globe, MessageCircle, Loader2 } from 'lucide-react';
 import { tutor as tutorApi } from '../../lib/api';
-import { LoadingSpinner } from './LoadingSpinner';
 import type { Language } from '@azurequest/shared';
 
 interface TutorDrawerProps {

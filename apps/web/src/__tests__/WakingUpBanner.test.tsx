@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { WakingUpBanner } from '../../components/ui/WakingUpBanner';
+import { WakingUpBanner } from '../components/ui/WakingUpBanner';
 
 describe('WakingUpBanner', () => {
   it('renders the waking up message', () => {
