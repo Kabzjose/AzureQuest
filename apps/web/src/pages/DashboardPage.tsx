@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { TrendingUp, BookOpen, RefreshCw, AlertTriangle, ChevronRight, Info, UserPlus } from 'lucide-react';
+import { TrendingUp, BookOpen, RefreshCw, AlertTriangle, ChevronRight, Info } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { progress as progressApi } from '../lib/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
@@ -100,7 +100,7 @@ export default function DashboardPage() {
   const topMisconception = misconceptions.find(m => m.count >= 2);
   const next = nextData?.next;
 
-  const greeting = user?.isGuest ? 'Welcome, Guest!' : `Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}!`;
+  const greeting = `Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}!`;
 
   return (
     <div className="space-y-6">
@@ -108,23 +108,6 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-100">{greeting}</h1>
         <p className="text-gray-400 text-sm mt-1">Your AZ-900 learning progress</p>
       </div>
-
-      {/* Guest upgrade prompt */}
-      {user?.isGuest && (
-        <div className="bg-accent-600/10 border border-accent-600/30 rounded-xl p-4 flex items-start gap-3">
-          <UserPlus className="h-5 w-5 text-accent-500 shrink-0 mt-0.5" aria-hidden="true" />
-          <div>
-            <p className="text-sm font-medium text-accent-400">Save your progress permanently</p>
-            <p className="text-xs text-gray-400 mt-1">Guest sessions expire. Create an account to keep all your scores, flashcards, and history.</p>
-          </div>
-          <Link
-            to="/dashboard"
-            className="ml-auto shrink-0 px-3 py-1.5 bg-accent-600 hover:bg-accent-500 text-white text-xs font-medium rounded-lg transition-colors"
-          >
-            Upgrade
-          </Link>
-        </div>
-      )}
 
       {/* Misconception alert */}
       {topMisconception && (

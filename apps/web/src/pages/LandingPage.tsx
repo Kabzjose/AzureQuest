@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -59,31 +59,11 @@ function FeatureRow({
 export default function LandingPage() {
   const { setAuth, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
-  const [isGuestLoading, setIsGuestLoading] = useState(false);
-  const [guestError, setGuestError] = useState<string | null>(null);
   const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
-
-  useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard', { replace: true });
-  }, [isAuthenticated, navigate]);
-
-  async function handleGuest() {
-    setIsGuestLoading(true);
-    setGuestError(null);
-    try {
-      const { accessToken, user } = await authApi.guest();
-      setAuth(user, accessToken);
-      navigate('/dashboard');
-    } catch (error) {
-      setGuestError(error instanceof Error ? error.message : 'Could not start your guest session.');
-    } finally {
-      setIsGuestLoading(false);
-    }
-  }
 
   async function handleAuthSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -103,11 +83,8 @@ export default function LandingPage() {
 
   function openAuth(mode: 'login' | 'register') {
     setAuthMode(mode);
-    setGuestError(null);
     setAuthError(null);
   }
-
-  if (isAuthenticated) return null;
 
   return (
     <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100">
@@ -123,9 +100,16 @@ export default function LandingPage() {
           </span>
           <span className="text-lg font-bold tracking-tight">Azure<span className="text-brand-400">Quest</span></span>
         </Link>
-        <Link to="/about" className="text-sm font-medium text-slate-400 transition hover:text-white">
-          About the method
-        </Link>
+        <div className="flex items-center gap-5">
+          <Link to="/about" className="text-sm font-medium text-slate-400 transition hover:text-white">
+            About the method
+          </Link>
+          {isAuthenticated && (
+            <Link to="/dashboard" className="text-sm font-semibold text-brand-300 transition hover:text-brand-200">
+              Dashboard
+            </Link>
+          )}
+        </div>
       </nav>
 
       <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:pt-20">
@@ -145,27 +129,24 @@ export default function LandingPage() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={handleGuest}
-              disabled={isGuestLoading}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-3.5 font-semibold text-slate-950 shadow-xl shadow-brand-500/20 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => openAuth('register')}
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-3.5 font-semibold text-slate-950 shadow-xl shadow-brand-500/20 transition hover:bg-brand-400"
             >
-              {isGuestLoading ? <LoadingSpinner size="sm" /> : <Zap className="h-4 w-4 fill-current" aria-hidden="true" />}
-              Start free as a guest
-              {!isGuestLoading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+              Create your free account
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </button>
             <button
               type="button"
-              onClick={() => openAuth('register')}
+              onClick={() => openAuth('login')}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3.5 font-semibold text-white transition hover:border-white/30 hover:bg-white/[0.08]"
             >
-              Create an account
+              Sign in
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
-          {guestError && <p role="alert" className="mt-3 text-sm text-red-300">{guestError}</p>}
           <p className="mt-4 flex items-center gap-2 text-xs text-slate-500">
             <Check className="h-3.5 w-3.5 text-brand-400" aria-hidden="true" />
-            No credit card · Start in seconds · Upgrade later to keep your progress
+            Create an account to save your answers, scores, and revision queue
           </p>
 
           <div className="mt-14 grid max-w-xl grid-cols-3 gap-5 border-t border-white/10 pt-6">
@@ -227,7 +208,7 @@ export default function LandingPage() {
                 </button>
               </form>
               <button type="button" onClick={() => { setAuthMode(null); setAuthError(null); }} className="mt-5 w-full text-center text-sm text-slate-500 transition hover:text-white">
-                Continue without an account
+                Back to how AzureQuest works
               </button>
             </div>
           )}

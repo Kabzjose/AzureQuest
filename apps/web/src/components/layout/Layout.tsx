@@ -36,11 +36,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Top nav */}
       <header className="sticky top-0 z-40 bg-gray-900 border-b border-gray-800">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 text-brand-400 font-bold text-lg">
+          <Link to="/" className="flex items-center gap-2 text-brand-400 font-bold text-lg">
             <Zap className="h-5 w-5" aria-hidden="true" />
             AzureQuest
           </Link>
           <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
+            <NavItem to="/" icon={Zap} label="Home" />
             <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
             <NavItem to="/scenarios" icon={BookOpen} label="Scenarios" />
             <NavItem to="/revise" icon={RefreshCw} label="Revise" />
@@ -48,7 +49,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <span className="hidden sm:flex items-center gap-1 text-xs text-gray-500">
               <User className="h-3 w-3" />
-              {user?.email ?? (user?.isGuest ? 'Guest' : 'User')}
+              {user?.email ?? 'Account'}
             </span>
             <button
               onClick={handleLogout}
@@ -63,21 +64,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile nav */}
       <nav className="md:hidden bg-gray-900 border-b border-gray-800 px-4 py-2 flex gap-2 overflow-x-auto" aria-label="Mobile navigation">
+        <NavItem to="/" icon={Zap} label="Home" />
         <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
         <NavItem to="/scenarios" icon={BookOpen} label="Scenarios" />
         <NavItem to="/revise" icon={RefreshCw} label="Revise" />
       </nav>
-
-      {/* Guest upgrade banner */}
-      {user?.isGuest && (
-        <div className="bg-accent-600/20 border-b border-accent-600/30 px-4 py-2 text-center text-sm text-accent-400">
-          You're in guest mode.{' '}
-          <Link to="/dashboard" className="underline font-medium hover:text-accent-300">
-            Create a free account
-          </Link>{' '}
-          to save your progress permanently.
-        </div>
-      )}
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-6">
         {children}

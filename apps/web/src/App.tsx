@@ -16,14 +16,14 @@ const ResultsPage = lazy(() => import('./pages/ResultsPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading } = useAuthStore();
   if (isLoading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isAuthenticated || user?.isGuest) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 export default function App() {
-  const { setAuth, clearAuth, setLoading } = useAuthStore();
+  const { setAuth, clearAuth } = useAuthStore();
   const [isWakingUp, setIsWakingUp] = useState(false);
 
   // On mount: try to restore session via refresh token
@@ -33,6 +33,12 @@ export default function App() {
     authApi
       .refresh()
       .then(({ accessToken, user }) => {
+        // Guest sessions cannot access progress features. Return them to the
+        // account-required landing page instead of opening a partial session.
+        if (user.isGuest) {
+          clearAuth();
+          return;
+        }
         setAuth(user, accessToken);
       })
       .catch(() => {
