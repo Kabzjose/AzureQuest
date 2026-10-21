@@ -4,7 +4,7 @@ import { AppError } from '../middleware/errorHandler';
 import { ReviewBodySchema } from '@azurequest/shared';
 import { getDueFlashcards, reviewFlashcard } from '../repositories/attemptRepository';
 import { db } from '../db/client';
-import { flashcardStates, concepts } from '../db/schema';
+import {  concepts } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 

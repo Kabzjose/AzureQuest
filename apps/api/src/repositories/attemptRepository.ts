@@ -1,7 +1,7 @@
 import { db } from '../db/client';
 import { attempts, decisionResponses, flashcardStates, misconceptionStats } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
-import type { MistakeType } from '@azurequest/shared';
+
 
 // ─── Attempts ──────────────────────────────────────────────────────────────
 

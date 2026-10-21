@@ -5,7 +5,7 @@
 import 'dotenv/config';
 import { db, pool } from '../db/client';
 import { users } from '../db/schema';
-import { and, eq, lt, sql } from 'drizzle-orm';
+import { and, eq, lt,  } from 'drizzle-orm';
 import { logger } from './logger';
 
 async function cleanupGuests() {

@@ -12,7 +12,6 @@
 
 import 'dotenv/config';
 import { db, pool } from '../client';
-import { concepts, scenarios, decisions } from '../schema';
 import { v4 as uuidv4 } from 'uuid';
 import { sql } from 'drizzle-orm';
 import type { OptionFull } from '@azurequest/shared';

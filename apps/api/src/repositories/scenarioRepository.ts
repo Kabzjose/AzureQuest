@@ -1,6 +1,6 @@
 import { db, withRetry } from '../db/client';
 import { scenarios, decisions, concepts } from '../db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { ScenarioFull, DecisionFull, OptionFull, Domain } from '@azurequest/shared';
 
 // ─── Build a full ScenarioFull from DB rows ───────────────────────────────

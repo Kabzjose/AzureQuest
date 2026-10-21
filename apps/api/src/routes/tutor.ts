@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { ExplainBodySchema, ChatBodySchema, PracticeBodySchema, TutorExplanationSchema } from '@azurequest/shared';
 import { llmClient } from '../llm/client';

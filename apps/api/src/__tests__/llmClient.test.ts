@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MockLLMClient } from '../../src/llm/client';
-import { TutorExplanationSchema } from '@azurequest/shared';
+
 
 describe('MockLLMClient', () => {
   it('returns valid JSON that matches the TutorExplanation shape', async () => {
