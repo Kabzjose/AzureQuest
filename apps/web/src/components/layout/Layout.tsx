@@ -49,7 +49,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <span className="hidden sm:flex items-center gap-1 text-xs text-gray-500">
               <User className="h-3 w-3" />
-              {user?.email ?? 'Account'}
+              {user?.isGuest ? 'Guest mode' : user?.email ?? 'Account'}
             </span>
             <button
               onClick={handleLogout}

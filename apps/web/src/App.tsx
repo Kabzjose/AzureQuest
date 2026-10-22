@@ -16,9 +16,9 @@ const ResultsPage = lazy(() => import('./pages/ResultsPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
   if (isLoading) return <LoadingSpinner />;
-  if (!isAuthenticated || user?.isGuest) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -33,12 +33,6 @@ export default function App() {
     authApi
       .refresh()
       .then(({ accessToken, user }) => {
-        // Guest sessions cannot access progress features. Return them to the
-        // account-required landing page instead of opening a partial session.
-        if (user.isGuest) {
-          clearAuth();
-          return;
-        }
         setAuth(user, accessToken);
       })
       .catch(() => {

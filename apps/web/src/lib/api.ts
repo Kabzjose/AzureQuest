@@ -68,6 +68,7 @@ async function request<T>(
 import type { GuestAuthResponse, RegisterBody, LoginBody } from '@azurequest/shared';
 
 export const auth = {
+  guest: () => request<GuestAuthResponse>('/auth/guest', { method: 'POST' }),
   register: (body: RegisterBody) => request<GuestAuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body: LoginBody) => request<GuestAuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   refresh: () => request<GuestAuthResponse>('/auth/refresh', { method: 'POST' }),

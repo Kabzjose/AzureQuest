@@ -91,6 +91,20 @@ export default function LandingPage() {
     }
   }
 
+  async function handleGuestStart() {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const { accessToken, user } = await authApi.guest();
+      setAuth(user, accessToken);
+      navigate('/dashboard');
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : 'Could not start guest mode. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
   function openAuth(mode: 'login' | 'register') {
     setAuthMode(mode);
     setAuthError(null);
@@ -156,9 +170,19 @@ export default function LandingPage() {
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
+          <button
+            type="button"
+            onClick={handleGuestStart}
+            disabled={authLoading}
+            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Try the scenarios as a guest
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+          {authError && !authMode && <p role="alert" className="mt-2 text-sm text-red-300">{authError}</p>}
           <p className="mt-4 flex items-center gap-2 text-xs text-slate-500">
             <Check className="h-3.5 w-3.5 text-brand-400" aria-hidden="true" />
-            Create an account to save your answers, scores, and revision queue
+            Guest progress is available now; create an account to keep your learning history
           </p>
 
           <div className="mt-14 grid max-w-xl grid-cols-3 gap-5 border-t border-white/10 pt-6">
