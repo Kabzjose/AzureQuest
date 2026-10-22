@@ -152,7 +152,7 @@ export default function LandingPage() {
             AzureQuest turns AZ-900 preparation into short, realistic scenarios. Choose an approach, see the trade-offs, and understand the Azure concept behind it.
           </p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               onClick={() => openAuth('register')}
@@ -169,16 +169,19 @@ export default function LandingPage() {
               Sign in
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
+            <button
+              type="button"
+              onClick={handleGuestStart}
+              disabled={authLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-300/30 bg-orange-300/10 px-5 py-3.5 font-semibold text-orange-200 transition hover:border-orange-200/50 hover:bg-orange-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Continue as guest
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleGuestStart}
-            disabled={authLoading}
-            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Try the scenarios as a guest
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </button>
+          <p className="mt-3 text-sm text-slate-500">
+            No account needed to try the scenarios.
+          </p>
           {authError && !authMode && <p role="alert" className="mt-2 text-sm text-red-300">{authError}</p>}
           <p className="mt-4 flex items-center gap-2 text-xs text-slate-500">
             <Check className="h-3.5 w-3.5 text-brand-400" aria-hidden="true" />
