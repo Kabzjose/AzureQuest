@@ -3,6 +3,12 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { db, pool } from './client';
 import { logger } from '../utils/logger';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 async function main() {
   logger.info('Running database migrations...');
