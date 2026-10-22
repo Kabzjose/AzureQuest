@@ -12,7 +12,7 @@ When you get something wrong, an AI Tutor explains the technical reason using an
 
 ## Screenshots
 
-*TODO: Add screenshots after first deployment.*
+![alt text](image.png)
 
 ## Architecture
 
